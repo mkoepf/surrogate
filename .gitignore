@@ -48,3 +48,6 @@ MANIFEST
 
 # Per-project virtualenvs
 .venv*/
+
+# Large training and test data
+data/*
