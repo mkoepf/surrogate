@@ -1,3 +1,9 @@
+|Build Status|
+
+.. |Build Status| image:: https://travis-ci.com/mkoepf/surrogate.svg?branch=master
+   :target: https://travis-ci.com/mkoepf/surrogate
+
+
 =========
 surrogate
 =========
