@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import pytest
-from surrogate.skeleton import fib
+from surrogate.main import fib
 
 __author__ = "Michael Köpf"
 __copyright__ = "Michael Köpf"
