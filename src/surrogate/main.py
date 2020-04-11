@@ -7,7 +7,9 @@ the same time.
 import argparse
 import sys
 import logging
-from typing import List, Dict
+
+from pandas import DataFrame
+import sklearn.linear_model as lin
 
 from surrogate import __version__, datahandler
 
@@ -72,7 +74,25 @@ def main(args):
 
     _logger.info("Starting ...")
 
-    patient_data: List[Dict] = datahandler.load_data_file('data/haberman/haberman.data')
+    patient_data: DataFrame = datahandler.load_data_file('data/haberman/haberman.data')
+
+    # Split data into training and test set
+    data_test = patient_data[:50]
+    data_train = patient_data[50:]
+
+    # Train, i.e., fit
+    x_train = data_train.drop(columns=['survival'])
+    y_train = data_train['survival']
+    clf = lin.LogisticRegression().fit(x_train, y_train)
+
+    print(clf.coef_)
+
+    # Calculate accuracy on the test set
+    x_test = data_test.drop(columns=['survival'])
+    y_test = data_test['survival']
+    score = clf.score(x_test, y_test)
+
+    print(score)
 
     _logger.info("Done!")
 
