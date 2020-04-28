@@ -10,6 +10,9 @@ import logging
 
 from pandas import DataFrame
 import sklearn.linear_model as lin
+import sklearn.tree as tree
+from sklearn import metrics
+import matplotlib.pyplot as plt
 
 from surrogate import __version__, datahandler
 
@@ -75,6 +78,7 @@ def main(args):
     _logger.info("Starting ...")
 
     patient_data: DataFrame = datahandler.load_data_file('data/haberman/haberman.data')
+    patient_data['survival'] = patient_data['survival']-1
 
     # Split data into training and test set
     data_test = patient_data[:50]
@@ -84,15 +88,58 @@ def main(args):
     x_train = data_train.drop(columns=['survival'])
     y_train = data_train['survival']
     clf = lin.LogisticRegression().fit(x_train, y_train)
-
     print(clf.coef_)
+
+    weights_train = x_train.copy()
+    for i in range(len(clf.coef_[0])):
+        weights_train.iloc[:, i] = x_train.iloc[:, i] * clf.coef_[0][i]
+
+    # Distribution of a column
+    x_train['nodes'].plot.hist(bins=10)
+    plt.show()
+
+    # clf = tree.DecisionTreeClassifier().fit(x_train, y_train)
 
     # Calculate accuracy on the test set
     x_test = data_test.drop(columns=['survival'])
     y_test = data_test['survival']
     score = clf.score(x_test, y_test)
 
+    # boxplot with overlay of individual point (for linmod-explanation)
+    plt.figure()
+    weights_sample = x_test.iloc[5, :]*clf.coef_[0]
+    weights_train.boxplot()
+
+    for i in range(3):
+        y = weights_sample[i]
+        x = 1+i
+        plt.plot(x, y, 'r.')
+
+    plt.show()
+    # for i in range(len(clf.coef_[0])):
+    #     weights_train.iloc[:, i] = x_train.iloc[:, i] * clf.coef_[0][i]
+
     print(score)
+
+    y_score = clf.predict_proba(x_test)
+    tpr, fpr, _ = metrics.roc_curve(y_test, y_score[:,1])
+    roc_auc = metrics.auc(tpr, fpr)
+
+    # plt.figure()
+    # lw = 2
+    # plt.plot(fpr, tpr, color='darkorange',
+    #          lw=lw, label='ROC curve (area = %0.2f)' % roc_auc)
+    # plt.plot([0, 1], [0, 1], color='navy', lw=lw, linestyle='--')
+    # plt.xlim([0.0, 1.0])
+    # plt.ylim([0.0, 1.05])
+    # plt.xlabel('False Positive Rate')
+    # plt.ylabel('True Positive Rate')
+    # plt.title('Receiver operating characteristic example')
+    # plt.legend(loc="lower right")
+    # plt.show()
+
+
+
 
     _logger.info("Done!")
 
